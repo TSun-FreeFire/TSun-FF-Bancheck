@@ -2,6 +2,11 @@ from flask import Flask, request, Response, render_template
 import requests
 import json
 import datetime
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -15,7 +20,11 @@ def docs():
 
 
 
-def get_combined_data(uid, ban_key="saeed"):
+def get_combined_data(uid, ban_key=None):
+    # Get BAN_KEY from environment variables
+    if ban_key is None:
+        ban_key = os.getenv('BAN_KEY', 'saeed')
+    
     namecheck_url = f"https://fffinfo.tsunstudio.pw/get?uid={uid}"
     bancheck_url = f"https://bancheckbackend.tsunstudio.pw/bancheck?key={ban_key}&uid={uid}"
 
@@ -63,8 +72,8 @@ def bancheck():
     if not uid:
         return Response(json.dumps({"error": "UID is required"}, indent=2, sort_keys=False), mimetype='application/json'), 400
     
-    # Default values for ban_key, as it is not part of the /bancheck endpoint
-    ban_key = "saeed"
+    # Get BAN_KEY from environment variables
+    ban_key = os.getenv('BAN_KEY', 'none')
 
     result = get_combined_data(uid, ban_key)
     return Response(json.dumps(result, indent=2, sort_keys=False), mimetype='application/json')
