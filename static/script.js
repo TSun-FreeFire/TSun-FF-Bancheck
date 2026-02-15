@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('nickname').textContent = data.nickname || 'N/A';
         document.getElementById('region').textContent = data.region || 'N/A';
         document.getElementById('level').textContent = data.AccountLevel || 'N/A';
-        document.getElementById('lastLogin').textContent = data.AccountLastLogin || 'N/A';
+        document.getElementById('lastLogin').textContent = data.Last_Login || 'N/A';
 
         // Status Badge
         const statusBadge = document.getElementById('statusBadge');
