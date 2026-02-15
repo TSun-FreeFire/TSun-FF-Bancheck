@@ -26,7 +26,7 @@ def get_combined_data(uid, ban_key=None):
         ban_key = os.getenv('BAN_KEY', 'saeed')
     
     namecheck_url = f"https://fffinfo.tsunstudio.pw/get?uid={uid}"
-    bancheck_url = f"https://bancheckbackend.tsunstudio.pw/bancheck?key={ban_key}&uid={uid}"
+    bancheck_url = f"https://bancheckback.tsunstudio.pw/bancheck?key={ban_key}&uid={uid}"
 
     namecheck_response = requests.get(namecheck_url)
     bancheck_response = requests.get(bancheck_url)
@@ -50,19 +50,32 @@ def get_combined_data(uid, ban_key=None):
     }
     
     if combined_data["AccountLastLogin"]:
-        timestamp = int(combined_data["AccountLastLogin"])
-        last_login_date = datetime.datetime.fromtimestamp(timestamp)
-        combined_data["AccountLastLogin"] = last_login_date.strftime('%Y-%m-%d')
+        try:
+            # Try to parse as timestamp first (integer)
+            timestamp = int(combined_data["AccountLastLogin"])
+            last_login_date = datetime.datetime.fromtimestamp(timestamp)
+        except (ValueError, TypeError):
+            # If not a timestamp, parse as date string format: "YYYY-MM-DD HH:MM:SS TZ"
+            try:
+                # Remove timezone suffix (e.g., " PKT") and parse
+                date_str = combined_data["AccountLastLogin"].rsplit(' ', 1)[0]
+                last_login_date = datetime.datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S')
+            except:
+                # If parsing fails, skip date calculations
+                last_login_date = None
+        
+        if last_login_date:
+            combined_data["AccountLastLogin"] = last_login_date.strftime('%Y-%m-%d')
 
-        today = datetime.datetime.now()
-        diff = today - last_login_date
+            today = datetime.datetime.now()
+            diff = today - last_login_date
 
-        years = diff.days // 365
-        remaining_days = diff.days % 365
-        months = remaining_days // 30  # Approximate months
-        days = remaining_days % 30
+            years = diff.days // 365
+            remaining_days = diff.days % 365
+            months = remaining_days // 30  # Approximate months
+            days = remaining_days % 30
 
-        combined_data["Last_Login"] = f"{years} Year {months} Months And {days} Days Ago"
+            combined_data["Last_Login"] = f"{years} Year {months} Months And {days} Days Ago"
 
     return combined_data
 

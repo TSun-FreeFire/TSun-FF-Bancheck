@@ -22,6 +22,16 @@
 > 🧠 Designed for speed, precision, and integration with custom dashboards or moderation tools.
 
 ---
+
+## 📋 Overview
+
+The application uses the `BAN_KEY` environment variable to authenticate with the ban check API. This key Buy From Admin Or Replace Banecheckbackend Api With Your Own Api:
+
+- **Local Development**: Uses `.env` file
+- **Vercel**: Uses Environment Variables in project settings
+- **Render**: Uses Environment Variables in service settings
+
+---
 <div align="center">
 
 ## 🚀 Features
