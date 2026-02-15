@@ -45,7 +45,6 @@ def get_combined_data(uid, ban_key=None):
         "AccountLastLogin": namecheck_data.get("AccountInfo", {}).get("AccountLastLogin"),
         "status": bancheck_data.get("status"),
         "is_banned": bancheck_data.get("is_banned"),
-        "Last_Login": "", # Placeholder, will be calculated later
         "credits": bancheck_data.get("credits")
     }
     
@@ -69,13 +68,39 @@ def get_combined_data(uid, ban_key=None):
 
             today = datetime.datetime.now()
             diff = today - last_login_date
-
-            years = diff.days // 365
-            remaining_days = diff.days % 365
-            months = remaining_days // 30  # Approximate months
-            days = remaining_days % 30
-
-            combined_data["Last_Login"] = f"{years} Year {months} Months And {days} Days Ago"
+            
+            total_seconds = diff.total_seconds()
+            
+            # Handle different time ranges
+            if total_seconds < 0:
+                # Future date (shouldn't happen, but handle it)
+                combined_data["Last_Login"] = "Just now"
+            elif total_seconds < 60:
+                # Less than a minute
+                combined_data["Last_Login"] = "Just now"
+            elif total_seconds < 3600:
+                # Less than an hour - show minutes
+                minutes = int(total_seconds // 60)
+                combined_data["Last_Login"] = f"{minutes} Minute{'s' if minutes != 1 else ''} Ago"
+            elif total_seconds < 86400:
+                # Less than a day - show hours
+                hours = int(total_seconds // 3600)
+                combined_data["Last_Login"] = f"{hours} Hour{'s' if hours != 1 else ''} Ago"
+            elif diff.days < 30:
+                # Less than a month - show days
+                combined_data["Last_Login"] = f"{diff.days} Day{'s' if diff.days != 1 else ''} Ago"
+            elif diff.days < 365:
+                # Less than a year - show months and days
+                months = diff.days // 30
+                days = diff.days % 30
+                combined_data["Last_Login"] = f"{months} Month{'s' if months != 1 else ''} And {days} Day{'s' if days != 1 else ''} Ago"
+            else:
+                # More than a year - show years, months, and days
+                years = diff.days // 365
+                remaining_days = diff.days % 365
+                months = remaining_days // 30
+                days = remaining_days % 30
+                combined_data["Last_Login"] = f"{years} Year{'s' if years != 1 else ''} {months} Month{'s' if months != 1 else ''} And {days} Day{'s' if days != 1 else ''} Ago"
 
     return combined_data
 
