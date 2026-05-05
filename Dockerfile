@@ -10,7 +10,7 @@ WORKDIR /app
 
 # Copy requirements and install
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir gunicorn -r requirements.txt
 
 # Copy your app code and templates/static folders
 COPY app.py .
@@ -20,5 +20,5 @@ COPY static/ static/
 # Expose port
 EXPOSE 5000
 
-# Start the Flask app
-CMD ["python", "app.py"]
+# Start the app with a production WSGI server
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--threads", "8", "--timeout", "120", "app:app"]
