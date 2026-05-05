@@ -1,10 +1,11 @@
-from flask import Flask, request, Response, render_template
+from flask import Flask, request, Response, render_template, g
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import json
 import datetime
 import os
+import logging
 import time
 from dotenv import load_dotenv
 
@@ -12,6 +13,19 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+
+
+def configure_logging():
+    logging.basicConfig(level=logging.INFO, format='%(message)s')
+    logging.getLogger('werkzeug').setLevel(logging.WARNING)
+    return logging.getLogger('tsun-bancheck')
+
+
+logger = configure_logging()
+try:
+    from waitress import serve
+except ImportError:
+    serve = None
 
 # Configure requests session with retry strategy
 def create_retry_session(
@@ -35,6 +49,22 @@ def create_retry_session(
     session.mount('http://', adapter)
     session.mount('https://', adapter)
     return session
+
+
+@app.before_request
+def start_request_timer():
+    g.request_started_at = time.perf_counter()
+
+
+@app.after_request
+def log_request(response):
+    if request.path in {'/favicon.ico'} or request.path.startswith('/static/'):
+        return response
+
+    started_at = getattr(g, 'request_started_at', None)
+    elapsed_ms = ((time.perf_counter() - started_at) * 1000) if started_at else 0.0
+    logger.info(f"HTTP  | {request.method} {request.path} -> {response.status_code} ({elapsed_ms:.1f}ms)")
+    return response
 
 @app.route('/')
 def index():
@@ -77,7 +107,7 @@ def get_combined_data(uid, ban_key=None):
         
         for attempt in range(max_attempts):
             try:
-                print(f"Namecheck API attempt {attempt + 1}/{max_attempts}: {namecheck_url}")
+                logger.info(f"NAMECHECK | attempt {attempt + 1}/{max_attempts} | uid={uid}")
                 namecheck_response = session.get(
                     namecheck_url, 
                     timeout=15,
@@ -87,10 +117,11 @@ def get_combined_data(uid, ban_key=None):
                     }
                 )
                 namecheck_response.raise_for_status()
-                print(f"Namecheck Raw Response: {namecheck_response.text[:200]}...")
+                if os.getenv('LOG_RAW_RESPONSES', '0') == '1':
+                    logger.info(f"NAMECHECK | response | {namecheck_response.text[:200]}...")
                 break
             except requests.exceptions.ConnectionError as e:
-                print(f"Connection error on attempt {attempt + 1}: {str(e)}")
+                logger.warning(f"NAMECHECK | connection error | attempt={attempt + 1} | {str(e)}")
                 if attempt < max_attempts - 1:
                     time.sleep(1 * (attempt + 1))  # Exponential backoff
                     continue
@@ -110,19 +141,19 @@ def get_combined_data(uid, ban_key=None):
         combined_data["AccountLastLogin"] = namecheck_data.get("AccountInfo", {}).get("AccountLastLogin")
         
     except requests.exceptions.Timeout:
-        print(f"Namecheck API Timeout: {namecheck_url}")
+        logger.warning(f"NAMECHECK | timeout | uid={uid}")
         combined_data["error"] = "Namecheck API request timed out"
     except requests.exceptions.ConnectionError as e:
-        print(f"Namecheck API Connection Error: {str(e)}")
+        logger.warning(f"NAMECHECK | connection error | uid={uid} | {str(e)}")
         combined_data["error"] = "Failed to connect to namecheck API. Please check the URL or try again later."
     except requests.exceptions.HTTPError as e:
-        print(f"Namecheck API HTTP Error: {e.response.status_code}")
+        logger.warning(f"NAMECHECK | http error | uid={uid} | status={e.response.status_code}")
         combined_data["error"] = f"Namecheck API returned error: {e.response.status_code}"
     except ValueError as e:
-        print(f"Namecheck API JSON Parse Error: {str(e)}")
+        logger.warning(f"NAMECHECK | json parse error | uid={uid} | {str(e)}")
         combined_data["error"] = "Failed to parse namecheck API response"
     except Exception as e:
-        print(f"Namecheck API Unexpected Error: {str(e)}")
+        logger.error(f"NAMECHECK | unexpected error | uid={uid} | {str(e)}")
         combined_data["error"] = f"Unexpected error with namecheck API: {str(e)}"
 
     # Fetch bancheck data with error handling and retry
@@ -133,7 +164,7 @@ def get_combined_data(uid, ban_key=None):
         
         for attempt in range(max_attempts):
             try:
-                print(f"Bancheck API attempt {attempt + 1}/{max_attempts}: {bancheck_url}")
+                logger.info(f"BANCHECK  | attempt {attempt + 1}/{max_attempts} | uid={uid}")
                 bancheck_response = session.get(
                     bancheck_url, 
                     timeout=15,
@@ -143,10 +174,11 @@ def get_combined_data(uid, ban_key=None):
                     }
                 )
                 bancheck_response.raise_for_status()
-                print(f"Bancheck Raw Response: {bancheck_response.text[:200]}...")
+                if os.getenv('LOG_RAW_RESPONSES', '0') == '1':
+                    logger.info(f"BANCHECK  | response | {bancheck_response.text[:200]}...")
                 break
             except requests.exceptions.ConnectionError as e:
-                print(f"Connection error on attempt {attempt + 1}: {str(e)}")
+                logger.warning(f"BANCHECK  | connection error | attempt={attempt + 1} | {str(e)}")
                 if attempt < max_attempts - 1:
                     time.sleep(1 * (attempt + 1))  # Exponential backoff
                     continue
@@ -164,31 +196,31 @@ def get_combined_data(uid, ban_key=None):
         combined_data["credits"] = bancheck_data.get("credits")
         
     except requests.exceptions.Timeout:
-        print(f"Bancheck API Timeout: {bancheck_url}")
+        logger.warning(f"BANCHECK  | timeout | uid={uid}")
         if combined_data["error"]:
             combined_data["error"] += " | Bancheck API request timed out"
         else:
             combined_data["error"] = "Bancheck API request timed out"
     except requests.exceptions.ConnectionError as e:
-        print(f"Bancheck API Connection Error: {str(e)}")
+        logger.warning(f"BANCHECK  | connection error | uid={uid} | {str(e)}")
         if combined_data["error"]:
             combined_data["error"] += " | Failed to connect to bancheck API"
         else:
             combined_data["error"] = "Failed to connect to bancheck API"
     except requests.exceptions.HTTPError as e:
-        print(f"Bancheck API HTTP Error: {e.response.status_code}")
+        logger.warning(f"BANCHECK  | http error | uid={uid} | status={e.response.status_code}")
         if combined_data["error"]:
             combined_data["error"] += f" | Bancheck API error: {e.response.status_code}"
         else:
             combined_data["error"] = f"Bancheck API returned error: {e.response.status_code}"
     except ValueError as e:
-        print(f"Bancheck API JSON Parse Error: {str(e)}")
+        logger.warning(f"BANCHECK  | json parse error | uid={uid} | {str(e)}")
         if combined_data["error"]:
             combined_data["error"] += " | Failed to parse bancheck API response"
         else:
             combined_data["error"] = "Failed to parse bancheck API response"
     except Exception as e:
-        print(f"Bancheck API Unexpected Error: {str(e)}")
+        logger.error(f"BANCHECK  | unexpected error | uid={uid} | {str(e)}")
         if combined_data["error"]:
             combined_data["error"] += f" | Unexpected bancheck error: {str(e)}"
         else:
@@ -272,7 +304,7 @@ def bancheck():
         
         return Response(json.dumps(result, indent=2, sort_keys=False), mimetype='application/json')
     except Exception as e:
-        print(f"Unexpected error in bancheck route: {str(e)}")
+        logger.error(f"HTTP     | /bancheck unexpected error | uid={uid} | {str(e)}")
         error_response = {
             "error": f"Internal server error: {str(e)}",
             "uid": uid
@@ -280,4 +312,10 @@ def bancheck():
         return Response(json.dumps(error_response, indent=2, sort_keys=False), mimetype='application/json'), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.getenv('PORT', '5000'))
+    logger.info(f"TSun BanCheck ready | http://127.0.0.1:{port}")
+
+    if serve is not None:
+        serve(app, host='0.0.0.0', port=port, threads=int(os.getenv('WEB_CONCURRENCY', '8')))
+    else:
+        app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False, threaded=True)
