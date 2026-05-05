@@ -397,6 +397,16 @@ body[data-theme='cocoa-night'] .status-banned {
     color: #ffd5cf;
 }
 
+body[data-theme='cocoa-night'] .method {
+    background: rgba(140, 160, 122, 0.18);
+    color: #f4ede0;
+}
+
+body[data-theme='cocoa-night'] .preview-badge {
+    background: rgba(140, 160, 122, 0.18);
+    color: #f4ede0;
+}
+
 .brand-lockup {
     display: flex;
     align-items: center;
