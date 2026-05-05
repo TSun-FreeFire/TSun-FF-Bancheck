@@ -22,22 +22,22 @@
 }
 
 body[data-theme='cocoa-night'] {
-    --bg-1: #647d72;
-    --bg-2: #344944;
-    --bg-3: #1f2d2a;
-    --surface: #e9dfcf;
-    --surface-2: #ddd0bb;
-    --surface-3: #cab99f;
-    --ink: #f3ecdf;
-    --muted: #c2b6a2;
-    --line: #18211f;
-    --accent: #7a8f67;
-    --accent-2: #b08a58;
-    --good: #8eb39a;
-    --bad: #d18174;
-    --warn: #d5b067;
-    --shadow: 0 18px 0 rgba(0, 0, 0, 0.28);
-    --shadow-soft: 0 18px 40px rgba(5, 10, 8, 0.28);
+    --bg-1: #2c3937;
+    --bg-2: #1f2a28;
+    --bg-3: #111716;
+    --surface: #273330;
+    --surface-2: #2d3a36;
+    --surface-3: #354440;
+    --ink: #f4ede0;
+    --muted: #c7b9a7;
+    --line: #111815;
+    --accent: #8ca07a;
+    --accent-2: #c39a64;
+    --good: #9bc6a8;
+    --bad: #dc9086;
+    --warn: #d8bf79;
+    --shadow: 0 18px 0 rgba(0, 0, 0, 0.34);
+    --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.34);
 }
 
 * {
@@ -226,11 +226,175 @@ body[data-theme='cocoa-night'] .theme-toggle-thumb {
 }
 
 body[data-theme='cocoa-night'] .page-backdrop-one {
-    background: rgba(214, 200, 174, 0.22);
+    background: rgba(203, 188, 162, 0.12);
 }
 
 body[data-theme='cocoa-night'] .page-backdrop-two {
-    background: rgba(146, 181, 160, 0.18);
+    background: rgba(147, 177, 159, 0.12);
+}
+
+body[data-theme='cocoa-night'] {
+    background:
+        radial-gradient(circle at top left, rgba(196, 208, 199, 0.12), transparent 34%),
+        linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 48%, var(--bg-3) 100%);
+    color: var(--ink);
+}
+
+body[data-theme='cocoa-night']::before {
+    background-image: linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    opacity: 0.18;
+}
+
+body[data-theme='cocoa-night'] .app-shell,
+body[data-theme='cocoa-night'] .window-bar,
+body[data-theme='cocoa-night'] .toolbar,
+body[data-theme='cocoa-night'] .footer,
+body[data-theme='cocoa-night'] .workspace-card,
+body[data-theme='cocoa-night'] .sidebar-panel,
+body[data-theme='cocoa-night'] .panel,
+body[data-theme='cocoa-night'] .preview-screen,
+body[data-theme='cocoa-night'] .metric-card,
+body[data-theme='cocoa-night'] .doc-card,
+body[data-theme='cocoa-night'] .info-item,
+body[data-theme='cocoa-night'] .code-block,
+body[data-theme='cocoa-night'] .theme-toggle,
+body[data-theme='cocoa-night'] .side-link,
+body[data-theme='cocoa-night'] .nav-link,
+body[data-theme='cocoa-night'] input[type="text"],
+body[data-theme='cocoa-night'] .copy-btn,
+body[data-theme='cocoa-night'] .secondary-action,
+body[data-theme='cocoa-night'] .code-header,
+body[data-theme='cocoa-night'] .try-result,
+body[data-theme='cocoa-night'] .endpoint-box code,
+body[data-theme='cocoa-night'] .mini-table > div {
+    background-color: var(--surface);
+}
+
+body[data-theme='cocoa-night'] .app-shell {
+    background: linear-gradient(180deg, #22302d, #1d2927);
+}
+
+body[data-theme='cocoa-night'] .window-bar,
+body[data-theme='cocoa-night'] .toolbar,
+body[data-theme='cocoa-night'] .footer {
+    background: rgba(28, 38, 36, 0.94);
+}
+
+body[data-theme='cocoa-night'] .workspace-card,
+body[data-theme='cocoa-night'] .sidebar-panel,
+body[data-theme='cocoa-night'] .panel,
+body[data-theme='cocoa-night'] .doc-card,
+body[data-theme='cocoa-night'] .metric-card,
+body[data-theme='cocoa-night'] .info-item {
+    background: linear-gradient(180deg, #2c3936, #24302d);
+}
+
+body[data-theme='cocoa-night'] .preview-screen {
+    background:
+        linear-gradient(180deg, rgba(44, 57, 54, 0.96), rgba(33, 43, 40, 0.98)),
+        repeating-linear-gradient(135deg, rgba(174, 194, 171, 0.04) 0 10px, rgba(174, 194, 171, 0.01) 10px 20px);
+}
+
+body[data-theme='cocoa-night'] .code-block {
+    background: #18211f;
+}
+
+body[data-theme='cocoa-night'] .code-header {
+    background: #121917;
+    color: #f4ede0;
+}
+
+body[data-theme='cocoa-night'] .secondary-action,
+body[data-theme='cocoa-night'] .copy-btn,
+body[data-theme='cocoa-night'] .side-link,
+body[data-theme='cocoa-night'] .nav-link,
+body[data-theme='cocoa-night'] .theme-toggle,
+body[data-theme='cocoa-night'] input[type="text"],
+body[data-theme='cocoa-night'] .endpoint-box code,
+body[data-theme='cocoa-night'] .mini-table > div,
+body[data-theme='cocoa-night'] .preview-grid div,
+body[data-theme='cocoa-night'] .info-item,
+body[data-theme='cocoa-night'] .doc-card,
+body[data-theme='cocoa-night'] .metric-card,
+body[data-theme='cocoa-night'] .workspace-card,
+body[data-theme='cocoa-night'] .sidebar-panel,
+body[data-theme='cocoa-night'] .panel {
+    border-color: #111815;
+    box-shadow: none;
+}
+
+body[data-theme='cocoa-night'] .nav-link,
+body[data-theme='cocoa-night'] .side-link,
+body[data-theme='cocoa-night'] .theme-toggle,
+body[data-theme='cocoa-night'] .secondary-action,
+body[data-theme='cocoa-night'] .copy-btn,
+body[data-theme='cocoa-night'] input[type="text"],
+body[data-theme='cocoa-night'] .endpoint-box code,
+body[data-theme='cocoa-night'] .mini-table > div,
+body[data-theme='cocoa-night'] .preview-grid div,
+body[data-theme='cocoa-night'] .info-item,
+body[data-theme='cocoa-night'] .doc-card,
+body[data-theme='cocoa-night'] .metric-card {
+    background: #2f3d3a;
+}
+
+body[data-theme='cocoa-night'] .nav-link:hover,
+body[data-theme='cocoa-night'] .nav-link.active,
+body[data-theme='cocoa-night'] .side-link:hover,
+body[data-theme='cocoa-night'] .side-link.is-active {
+    background: #394743;
+    color: #f4ede0;
+}
+
+body[data-theme='cocoa-night'] .secondary-action,
+body[data-theme='cocoa-night'] .copy-btn {
+    color: #f4ede0;
+}
+
+body[data-theme='cocoa-night'] .primary-action,
+body[data-theme='cocoa-night'] #checkBtn,
+body[data-theme='cocoa-night'] #tryBtn {
+    background: linear-gradient(180deg, #8ca07a, #6b7f60);
+    color: #f4ede0;
+}
+
+body[data-theme='cocoa-night'] .secondary-action,
+body[data-theme='cocoa-night'] .copy-btn,
+body[data-theme='cocoa-night'] .theme-toggle,
+body[data-theme='cocoa-night'] .side-link,
+body[data-theme='cocoa-night'] .nav-link,
+body[data-theme='cocoa-night'] input[type="text"] {
+    color: #f4ede0;
+}
+
+body[data-theme='cocoa-night'] input[type="text"]::placeholder,
+body[data-theme='cocoa-night'] .brand-lockup p,
+body[data-theme='cocoa-night'] .workspace-card p,
+body[data-theme='cocoa-night'] .sidebar-panel p,
+body[data-theme='cocoa-night'] .section-heading p,
+body[data-theme='cocoa-night'] .hero-copy p,
+body[data-theme='cocoa-night'] .metric-card p,
+body[data-theme='cocoa-night'] .doc-card p,
+body[data-theme='cocoa-night'] .footer-content p,
+body[data-theme='cocoa-night'] .mini-table > div span,
+body[data-theme='cocoa-night'] .label,
+body[data-theme='cocoa-night'] .preview-grid small {
+    color: #c9baaa;
+}
+
+body[data-theme='cocoa-night'] .status-badge {
+    background: #3b4a46;
+    color: #f4ede0;
+}
+
+body[data-theme='cocoa-night'] .status-safe {
+    background: rgba(155, 198, 168, 0.16);
+    color: #cfe6d6;
+}
+
+body[data-theme='cocoa-night'] .status-banned {
+    background: rgba(220, 144, 134, 0.16);
+    color: #ffd5cf;
 }
 
 .brand-lockup {
