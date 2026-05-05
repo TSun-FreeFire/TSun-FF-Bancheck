@@ -38,11 +38,11 @@ def create_retry_session(
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', active_page='home')
 
 @app.route('/docs')
 def docs():
-    return render_template('docs.html')
+    return render_template('index.html', active_page='docs')
 
 
 
