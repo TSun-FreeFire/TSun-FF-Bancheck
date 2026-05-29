@@ -82,7 +82,7 @@ def get_combined_data(uid, ban_key=None):
         ban_key = os.getenv('BAN_KEY', 'saeed')
     
     namecheck_url = f"https://tsun-ff-infoxvisits-production.up.railway.app/info/{uid}"
-    bancheck_url = f"http://t-sun-ff-ban-check-api-ten.vercel.app/bancheck?key={ban_key}&uid={uid}"
+    bancheck_url = f"http://bancheckapi.tsunstudio.pw/bancheck?key={ban_key}&uid={uid}"
 
     # Initialize default data structure
     combined_data = {
