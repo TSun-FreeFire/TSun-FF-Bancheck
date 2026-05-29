@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  tsun-ff-bancheck:
+    build: .
+    container_name: tsun-ff-bancheck
+    restart: always
+    ports:
+      - "127.0.0.1:8072:8072"
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8072/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
