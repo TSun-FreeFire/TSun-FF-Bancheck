@@ -1,309 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TSun Ban Check</title>
-    <meta name="description" content="Free Fire ban check dashboard with live lookup tools and API reference.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSun Ban Check</title>
+<meta name="description" content="Free Fire account security tool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
 </head>
-
 <body>
-    <div class="page-backdrop page-backdrop-one"></div>
-    <div class="page-backdrop page-backdrop-two"></div>
+<header class="site-header">
+  <div class="header-inner">
+    <a href="#" class="brand">TSun BanCheck</a>
+    <nav aria-label="Primary" class="header-nav">
+      <a href="#" class="nav-link">Home</a>
+      <a href="#check" class="nav-link">Check</a>
+      <a href="#docs" class="nav-link">Docs</a>
+      <a href="https://github.com/TSun-FreeFire" target="_blank" rel="noreferrer" class="nav-link">GitHub</a>
+    </nav>
+    <div class="status-pill" aria-live="polite"><span class="dot"></span> API READY</div>
+  </div>
+</header>
 
-    <div class="app-shell">
-        <header class="window-bar">
-            <div class="window-controls" aria-hidden="true">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <div class="window-title">TSun BanCheck Console</div>
-            <div class="window-chip">Fast bancheck dashboard</div>
-        </header>
+<main class="container" id="top">
+  <section class="hero" aria-labelledby="hero-title">
+    <h1 id="hero-title">Check Free Fire account status instantly.</h1>
+    <p class="hero-sub">Free Fire Account Security Tool — enter a UID to inspect ban status, identity, and login history.</p>
+    <form class="lookup-form" onsubmit="event.preventDefault(); performCheck();" aria-label="UID lookup">
+      <div class="input-row">
+        <input type="text" id="uidInput" placeholder="Enter Player UID…" autocomplete="off" inputmode="numeric" aria-label="Player UID" aria-required="true">
+        <button type="submit" id="checkBtn">CHECK ACCOUNT</button>
+      </div>
+    </form>
+    <div class="loader" id="loader" aria-live="polite" aria-label="Loading" hidden><span class="spinner" aria-hidden="true"></span><span class="sr-only">Checking…</span></div>
+    <div class="error-message" id="errorMessage" role="alert" aria-live="assertive"></div>
+  </section>
 
-        <div class="toolbar">
-            <div class="brand-lockup">
-                <span class="brand-mark">🔥</span>
-                <div>
-                    <strong>FreeFire BanCheck API</strong>
-                    <p>Quick status lookup with live reference tools</p>
-                </div>
-            </div>
-            <div class="toolbar-actions">
-                <button class="theme-toggle" id="themeToggle" type="button" aria-pressed="false" aria-label="Switch color theme">
-                    <span class="theme-toggle-track" aria-hidden="true">
-                        <span class="theme-toggle-thumb"></span>
-                    </span>
-                    <span class="theme-toggle-label">Cocoa Night</span>
-                </button>
-                <nav class="top-nav" aria-label="Primary">
-                <a href="#top" class="nav-link {% if active_page == 'home' %}active{% endif %}">Home</a>
-                <a href="#check" class="nav-link">Check</a>
-                <a href="#docs" class="nav-link {% if active_page == 'docs' %}active{% endif %}">Docs</a>
-                <a href="https://github.com/TSun-FreeFire" target="_blank" rel="noreferrer" class="nav-link">GitHub</a>
-                </nav>
-            </div>
-        </div>
+  <section class="result-panel" id="check" aria-label="Account result" aria-live="polite">
+    <div class="result-header" id="resultContainer">
+      <h2>Account Status</h2>
+      <div class="status-badge" id="statusBadge">—</div>
+    </div>
+    <div class="result-grid">
+      <div class="info-item"><span class="label">Nickname</span><span class="value mono" id="nickname">—</span></div>
+      <div class="info-item"><span class="label">UID</span><span class="value mono" id="uidValue">—</span></div>
+      <div class="info-item"><span class="label">Region</span><span class="value" id="region">—</span></div>
+      <div class="info-item"><span class="label">Level</span><span class="value" id="level">—</span></div>
+      <div class="info-item"><span class="label">Last Login</span><span class="value" id="lastLogin">—</span></div>
+    </div>
+  </section>
 
-        <div class="app-grid">
-            <aside class="sidebar">
-                <div class="workspace-card">
-                    <span class="workspace-label">Workspace</span>
-                    <div class="workspace-name">MyTeam</div>
-                    <p>A tidy workspace for quick checks and reference.</p>
-                </div>
+  <section class="tech-strip" aria-label="Technical metadata">
+    <div class="tech-item"><span class="label">API Status</span><span class="value" id="apiStatus">Operational</span></div>
+    <div class="tech-item"><span class="label">Checked</span><span class="value mono" id="checkedAt">—</span></div>
+    <div class="tech-item"><span class="label">Response</span><span class="value mono" id="responseInfo">—</span></div>
+  </section>
 
-                <div class="sidebar-panel status-panel">
-                    <span class="panel-kicker">Current status</span>
-                    <strong>Ready for lookup</strong>
-                    <p>Enter a UID to fetch account details and ban status.</p>
-                </div>
+  <section class="raw-json" aria-label="Raw API response">
+    <button type="button" class="accordion-btn" onclick="toggleRaw()" aria-expanded="false" aria-controls="rawPanel">Raw API Response</button>
+    <div id="rawPanel" class="accordion-panel" hidden>
+      <div class="code-block">
+        <div class="code-header"><span>json</span><button onclick="copyCode(this)">Copy JSON</button></div>
+        <pre><code id="rawJson">{}</code></pre>
+      </div>
+    </div>
+  </section>
 
-                <nav class="side-nav" aria-label="Section navigation">
-                    <a href="#top" class="side-link">Overview</a>
-                    <a href="#check" class="side-link">Ban Check</a>
-                    <a href="#docs" class="side-link">Docs</a>
-                    <a href="#examples" class="side-link">Examples</a>
-                </nav>
-
-                <div class="sidebar-panel note-panel">
-                    <span class="panel-kicker">Style</span>
-                    <p>Warm panels, tactile borders, and a calmer night mode.</p>
-                </div>
-            </aside>
-
-            <main class="workspace">
-                <section id="top" class="hero-panel panel">
-                    <div class="hero-copy">
-                        <span class="eyebrow">Free Fire moderation toolkit</span>
-                        <h1>Track player status with a focused, polished dashboard.</h1>
-                        <p>
-                            Check ban state, inspect player details, and keep the reference material close while you work.
-                        </p>
-                        <div class="hero-actions">
-                            <a href="#check" class="primary-action">Start Lookup</a>
-                            <a href="#docs" class="secondary-action">Open Reference</a>
-                        </div>
-                    </div>
-
-                    <div class="hero-preview">
-                        <div class="preview-screen">
-                            <div class="preview-header">
-                                <span>Session</span>
-                                <span class="preview-badge">Active</span>
-                            </div>
-                            <div class="preview-grid">
-                                <div>
-                                    <small>Speed</small>
-                                    <strong>Responsive</strong>
-                                </div>
-                                <div>
-                                    <small>Focus</small>
-                                    <strong>Clean</strong>
-                                </div>
-                                <div>
-                                    <small>Control</small>
-                                    <strong>Simple</strong>
-                                </div>
-                            </div>
-                            <div class="preview-meter">
-                                <span></span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section id="check" class="panel check-panel">
-                    <div class="section-heading">
-                        <span class="eyebrow">Quick lookup</span>
-                        <h2>Ban Check</h2>
-                        <p>Enter a UID to retrieve nickname, region, level, status, and last login.</p>
-                    </div>
-
-                    <div class="input-row">
-                        <input type="text" id="uidInput" placeholder="Enter Player UID..." autocomplete="off" inputmode="numeric">
-                        <button id="checkBtn">Check Status</button>
-                    </div>
-
-                    <div class="loader" id="loader" aria-live="polite" aria-label="Loading">
-                        <div class="spinner"></div>
-                    </div>
-
-                    <div class="error-message" id="errorMessage"></div>
-
-                    <div class="result-container" id="resultContainer">
-                        <div class="result-grid">
-                            <div class="info-item">
-                                <span class="label">Nickname</span>
-                                <span class="value" id="nickname">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">Region</span>
-                                <span class="value" id="region">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">Level</span>
-                                <span class="value" id="level">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">Status</span>
-                                <span class="value status-badge" id="statusBadge">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">Last Login</span>
-                                <span class="value" id="lastLogin">-</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="metrics-row">
-                    <article class="metric-card panel">
-                        <span class="panel-kicker">Speed</span>
-                        <strong>Quick results</strong>
-                        <p>Built for fast lookups with minimal friction.</p>
-                    </article>
-                    <article class="metric-card panel">
-                        <span class="panel-kicker">Motion</span>
-                        <strong>Smooth entry</strong>
-                        <p>Gentle transitions keep the interface feeling alive.</p>
-                    </article>
-                    <article class="metric-card panel">
-                        <span class="panel-kicker">Reference</span>
-                        <strong>Close at hand</strong>
-                        <p>Examples and endpoint details sit beside the checker.</p>
-                    </article>
-                </section>
-
-                <section id="docs" class="panel docs-panel">
-                    <div class="section-heading docs-heading">
-                        <span class="eyebrow">Reference</span>
-                        <h2>API guide</h2>
-                        <p>Find endpoint details, sample data, and a working request example in one place.</p>
-                    </div>
-
-                    <div class="docs-grid">
-                        <article class="doc-card">
-                            <span class="panel-kicker">Overview</span>
-                            <h3>Player lookup API</h3>
-                            <p>Fetches Free Fire player data, ban status, and last-login details from the Flask backend.</p>
-                        </article>
-
-                        <article class="doc-card">
-                            <span class="panel-kicker">Highlights</span>
-                            <ul class="feature-list">
-                                <li>Player information and region</li>
-                                <li>Real-time ban status</li>
-                                <li>Last login formatting</li>
-                                <li>Minimal dependency footprint</li>
-                            </ul>
-                        </article>
-
-                        <article class="doc-card wide-card">
-                            <span class="panel-kicker">Install</span>
-                            <div class="code-block">
-                                <div class="code-header">
-                                    <span>bash</span>
-                                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                                </div>
-                                <pre><code>git clone https://github.com/TSun-FreeFire/TSun-FF-Bancheck.git
+  <section id="docs" class="docs" aria-labelledby="docs-title">
+    <h2 id="docs-title">API Documentation</h2>
+    <div class="docs-grid">
+      <article class="doc-card"><h3>Endpoint</h3><div class="endpoint-box"><span class="method">GET</span><code>/bancheck?uid=111111111</code></div></article>
+      <article class="doc-card"><h3>Parameters</h3><div class="mini-table"><div><strong>uid</strong><span>Required</span></div><p>Numeric player UID.</p></div></article>
+      <article class="doc-card wide"><h3>Install</h3><div class="code-block"><div class="code-header"><span>bash</span><button onclick="copyCode(this)">Copy</button></div><pre><code>git clone https://github.com/TSun-FreeFire/TSun-FF-Bancheck.git
 cd TSun-FF-Bancheck
 pip install -r requirements.txt
-python app.py
-This Repo Is Private For Purchase Src Contact 
-On instagram,Telegram: @saeedxdie </code></pre>
-                            </div>
-                        </article>
-
-                        <article class="doc-card">
-                            <span class="panel-kicker">Endpoint</span>
-                            <div class="endpoint-box">
-                                <span class="method">GET</span>
-                                <code>/bancheck?uid=111111111</code>
-                            </div>
-                        </article>
-
-                        <article class="doc-card">
-                            <span class="panel-kicker">Parameters</span>
-                            <div class="mini-table">
-                                <div><strong>uid</strong><span>Required</span></div>
-                                <p>Numeric player UID.</p>
-                            </div>
-                        </article>
-
-                        <article class="doc-card wide-card">
-                            <span class="panel-kicker">Live sample</span>
-                            <div class="try-it-box">
-                                <div class="input-row compact-row">
-                                    <input type="text" id="tryUid" placeholder="Try a UID..." autocomplete="off" inputmode="numeric">
-                                    <button id="tryBtn" type="button" onclick="tryAPI()">Try API</button>
-                                </div>
-                                <pre class="try-result" id="tryResult">JSON response will appear here.</pre>
-                            </div>
-                        </article>
-
-                        <article class="doc-card wide-card" id="response">
-                            <span class="panel-kicker">Sample response</span>
-                            <div class="code-block">
-                                <div class="code-header">
-                                    <span>json</span>
-                                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                                </div>
-                                <pre><code>{
-  "nickname": "TSun x Kittens",
-  "uid": "111111111",
-  "AccountLevel": 100,
-  "region": "PK",
-  "AccountLastLogin": "2026-05-05",
-  "status": "OK",
-  "is_banned": false,
-  "Last_Login": "0 Year 2 Months And 7 Days Ago",
-  "credits": "TSun Studio"
-}</code></pre>
-                            </div>
-                        </article>
-
-                        <article class="doc-card wide-card" id="examples">
-                            <span class="panel-kicker">Example</span>
-                            <div class="code-block">
-                                <div class="code-header">
-                                    <span>python</span>
-                                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                                </div>
-                                <pre><code>import requests
-
+python app.py</code></pre></div></article>
+      <article class="doc-card"><h3>Sample Response</h3><div class="code-block"><div class="code-header"><span>json</span><button onclick="copyCode(this)">Copy</button></div><pre><code id="sampleResponse">{"nickname":"TSun x Kittens","uid":"111111111","AccountLevel":100,"region":"PK","status":"OK","is_banned":false,"credits":"TSun Studio","Last_Login":"0 Year 2 Months And 7 Days Ago"}</code></pre></div></article>
+      <article class="doc-card"><h3>Python Example</h3><div class="code-block"><div class="code-header"><span>python</span><button onclick="copyCode(this)">Copy</button></div><pre><code>import requests
 uid = "111111111"
 response = requests.get(f"https://bancheck.tsunstudio.me/bancheck?uid={uid}")
-data = response.json()
-
-print(f"Player: {data['nickname']}")</code></pre>
-                            </div>
-                        </article>
-                    </div>
-                </section>
-            </main>
-        </div>
-
-        <footer class="footer">
-            <div class="footer-content">
-                <p>&copy; 2026 TSun Studio, Script Kittens, 𝙎ค૯𝙀𝘿✘🫀.</p>
-                <div class="footer-links">
-                    <a href="#top">Back to top</a>
-                    <a href="https://github.com/TSun-FreeFire" target="_blank" rel="noreferrer">GitHub</a>
-                </div>
-            </div>
-        </footer>
+print(response.json())</code></pre></div></article>
+      <article class="doc-card wide"><h3>Try API</h3><div class="try-it-box"><div class="input-row"><input type="text" id="tryUid" placeholder="Try a UID…" autocomplete="off" inputmode="numeric"><button type="button" id="tryBtn" onclick="tryAPI()">Try</button></div><pre class="try-result" id="tryResult">JSON response will appear here.</pre></div></article>
     </div>
+  </section>
+</main>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-    <script src="/static/script.js"></script>
+<footer class="site-footer">
+  <div class="footer-inner"><span>TSun BanCheck · TSun Studio</span><a href="https://github.com/TSun-FreeFire" target="_blank" rel="noreferrer">GitHub</a><span>2026</span></div>
+</footer>
+
+<script src="/static/script.js"></script>
 </body>
-
 </html>
