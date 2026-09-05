@@ -481,6 +481,7 @@ input[type="text"]:disabled {
   color: var(--text-2);
   font-weight: 700;
   font-size: 0.88rem;
+  min-width: 0;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
