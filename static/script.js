@@ -19,9 +19,16 @@
   const checkedAt  = document.getElementById('checkedAt');
   const responseInfo = document.getElementById('responseInfo');
   const apiStatus  = document.getElementById('apiStatus');
+  const lookupSpeed = document.getElementById('lookupSpeed');
+  const statusText = document.getElementById('statusText');
+  const responseState = document.getElementById('responseState');
+  const statusHero = document.getElementById('statusHero');
+  const statusIcon = document.getElementById('statusIcon');
+  const statusMessage = document.getElementById('statusMessage');
   const tryUidInput = document.getElementById('tryUid');
   const tryBtnTry  = document.getElementById('tryBtn');
   const tryResult  = document.getElementById('tryResult');
+  const checkBtnDefaultLabel = checkBtn ? checkBtn.textContent : 'CHECK ACCOUNT';
 
   /* ── State ────────────────────────────────────────────── */
   let isChecking = false;
@@ -49,6 +56,7 @@
     clearResult();
     setLoading(true);
     isChecking = true;
+    if (responseState) responseState.textContent = 'Loading';
 
     let response;
     let data;
@@ -63,7 +71,9 @@
 
       /* Update technical strip */
       if (responseInfo) responseInfo.textContent = `${latencyMs}ms`;
-      if (apiStatus) apiStatus.textContent = response.ok ? 'REACHED' : 'ERROR';
+      if (lookupSpeed) lookupSpeed.textContent = latencyMs < 1200 ? 'Fast Lookup' : 'Lookup Active';
+      if (apiStatus) apiStatus.textContent = response.ok ? 'Operational' : 'Error';
+      if (responseState) responseState.textContent = response.ok ? 'Success' : `HTTP ${response.status}`;
 
       /* 2xx → full success; 400 → bad uid; 503/500 → show available partial data + error note; anything else → error */
       if (response.ok) {
@@ -90,6 +100,8 @@
     } catch (err) {
       /* Network failure, JSON parse error, etc. */
       console.error('[TSun] Lookup failed:', err);
+      if (responseState) responseState.textContent = 'Network Error';
+      if (apiStatus) apiStatus.textContent = 'Unavailable';
       showError('Unable to reach the server. Check your connection and try again.');
     } finally {
       setLoading(false);
@@ -116,23 +128,40 @@
     /* Ban status — the primary verdict */
     if (statusBadge) {
       statusBadge.className = 'status-badge';
+      if (statusHero) statusHero.className = 'status-hero';
 
       if (data.is_banned === true) {
         statusBadge.textContent = 'ACCOUNT BANNED';
         statusBadge.classList.add('is-banned');
+        if (statusHero) statusHero.classList.add('state-banned');
+        if (statusIcon) statusIcon.textContent = '!';
+        if (statusMessage) statusMessage.textContent = 'This account appears to be banned.';
       } else if (data.is_banned === false) {
         statusBadge.textContent = 'ACCOUNT CLEAN';
         statusBadge.classList.add('is-clean');
+        if (statusHero) statusHero.classList.add('state-clean');
+        if (statusIcon) statusIcon.textContent = '✓';
+        if (statusMessage) statusMessage.textContent = 'No ban detected for this account.';
       } else {
         /* is_banned is null/undefined — check if there's a status field */
         if (data.status && data.status.toUpperCase() === 'BANNED') {
           statusBadge.textContent = 'ACCOUNT BANNED';
           statusBadge.classList.add('is-banned');
+          if (statusHero) statusHero.classList.add('state-banned');
+          if (statusIcon) statusIcon.textContent = '!';
+          if (statusMessage) statusMessage.textContent = 'This account appears to be banned.';
         } else {
           statusBadge.textContent = 'UNKNOWN';
           statusBadge.classList.add('is-unknown');
+          if (statusHero) statusHero.classList.add('state-unknown');
+          if (statusIcon) statusIcon.textContent = '?';
+          if (statusMessage) statusMessage.textContent = 'Ban status is not available for this lookup.';
         }
       }
+    }
+
+    if (statusText) {
+      statusText.textContent = data.status || (data.is_banned === true ? 'BANNED' : data.is_banned === false ? 'OK' : 'Unknown');
     }
 
     /* Timestamp */
@@ -143,6 +172,7 @@
     /* Reveal result panel */
     if (resultPanel) {
       resultPanel.hidden = false;
+      resultPanel.classList.add('is-visible');
       resultPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }
@@ -150,7 +180,7 @@
   /* ── Helper: safe text setter ──────────────────────────── */
   function setText(id, value) {
     const el = document.getElementById(id);
-    if (el) el.textContent = value != null && value !== '' ? value : '—';
+    if (el) el.textContent = value != null && value !== '' ? value : 'N/A';
   }
 
   /* ── Helper: clear result on error / retry ─────────────── */
@@ -161,13 +191,33 @@
     setText('level',      null);
     setText('lastLogin',  null);
     if (statusBadge) {
-      statusBadge.textContent = '—';
+      statusBadge.textContent = 'UNKNOWN';
       statusBadge.className  = 'status-badge';
     }
-    if (checkedAt)    checkedAt.textContent    = '—';
-    if (responseInfo) responseInfo.textContent = '—';
+    if (statusHero) {
+      statusHero.className = 'status-hero state-unknown';
+    }
+    if (statusIcon) {
+      statusIcon.textContent = '?';
+    }
+    if (statusMessage) {
+      statusMessage.textContent = 'Ban status is not available for this lookup.';
+    }
+
+    if (checkedAt)    checkedAt.textContent    = 'N/A';
+    if (responseInfo) responseInfo.textContent = 'N/A';
+    if (statusText)   statusText.textContent   = 'Unknown';
+    if (responseState) responseState.textContent = 'Idle';
+    if (lookupSpeed) lookupSpeed.textContent = 'Fast Lookup';
     if (rawJson)     rawJson.textContent      = '{}';
     if (rawPanel)    rawPanel.hidden          = true;
+    if (resultPanel) {
+      resultPanel.classList.remove('is-visible');
+      resultPanel.hidden = true;
+    }
+
+    const rawToggleBtn = document.querySelector('.accordion-btn[aria-controls="rawPanel"]');
+    if (rawToggleBtn) rawToggleBtn.setAttribute('aria-expanded', 'false');
   }
 
   /* ══════════════════════════════════════════════════════════
@@ -183,6 +233,9 @@
       rawJson.textContent = String(data);
     }
     if (rawPanel) rawPanel.hidden = false;
+
+    const rawToggleBtn = document.querySelector('.accordion-btn[aria-controls="rawPanel"]');
+    if (rawToggleBtn) rawToggleBtn.setAttribute('aria-expanded', 'true');
   }
 
   /* ══════════════════════════════════════════════════════════
@@ -192,7 +245,7 @@
   function setLoading(on) {
     if (checkBtn) {
       checkBtn.disabled = on;
-      checkBtn.textContent = on ? 'CHECKING ACCOUNT...' : 'CHECK ACCOUNT';
+      checkBtn.textContent = on ? 'CHECKING...' : checkBtnDefaultLabel;
     }
     if (loader) {
       loader.hidden = !on;
@@ -243,10 +296,10 @@
 
     if (tryBtnTry) {
       tryBtnTry.disabled = true;
-      tryBtnTry.textContent = 'Loading…';
+      tryBtnTry.textContent = 'Loading...';
     }
     if (tryResult) {
-      tryResult.textContent = 'Fetching…';
+      tryResult.textContent = 'Fetching...';
       tryResult.style.color = 'var(--text-muted)';
     }
 
@@ -295,7 +348,13 @@
   function copyCode(button) {
     const codeBlock = button ? button.closest('.code-block') : null;
     const codeEl    = codeBlock ? codeBlock.querySelector('code') : null;
-    const text      = codeEl ? codeEl.textContent : '';
+    let text = codeEl ? codeEl.textContent : '';
+
+    if (!text && button) {
+      const endpointRow = button.closest('.endpoint-row');
+      const endpointCode = endpointRow ? endpointRow.querySelector('code') : null;
+      text = endpointCode ? endpointCode.textContent : '';
+    }
 
     if (!text) return;
 
@@ -377,49 +436,12 @@
   }
 
   /* ══════════════════════════════════════════════════════════
-     THEME PREFERENCE (optional — dark-first, persisted)
-     Only activates if a .theme-toggle element exists.
-     ══════════════════════════════════════════════════════════ */
-
-  function initTheme() {
-    const toggle = document.getElementById('themeToggle');
-    if (!toggle) return;
-
-    const STORAGE_KEY = 'tsun-theme';
-    const DARK_THEME  = 'dark';
-
-    var saved = null;
-    try { saved = localStorage.getItem(STORAGE_KEY); } catch (_) {}
-
-    function applyTheme(name) {
-      if (name === DARK_THEME) {
-        document.documentElement.setAttribute('data-theme', DARK_THEME);
-        toggle.setAttribute('aria-pressed', 'true');
-      } else {
-        document.documentElement.removeAttribute('data-theme');
-        toggle.setAttribute('aria-pressed', 'false');
-      }
-      try { localStorage.setItem(STORAGE_KEY, name); } catch (_) {}
-    }
-
-    /* Default: system preference or dark */
-    var initial = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : DARK_THEME);
-    applyTheme(initial);
-
-    toggle.addEventListener('click', function () {
-      var current = document.documentElement.hasAttribute('data-theme') ? DARK_THEME : 'light';
-      applyTheme(current === DARK_THEME ? 'light' : DARK_THEME);
-    });
-  }
-
-  /* ══════════════════════════════════════════════════════════
      INITIALISE
      ══════════════════════════════════════════════════════════ */
 
   function init() {
     initNav();
     initKeyboard();
-    initTheme();
   }
 
   if (document.readyState === 'loading') {

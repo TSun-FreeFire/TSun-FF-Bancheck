@@ -7,88 +7,176 @@
 <meta name="description" content="Free Fire account security tool.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 <header class="site-header">
   <div class="header-inner">
-    <a href="#" class="brand">TSun BanCheck</a>
+    <a href="#top" class="brand-wrap">
+      <span class="brand">TSun BanCheck</span>
+      <span class="brand-sub">FREE FIRE ACCOUNT SECURITY</span>
+    </a>
     <nav aria-label="Primary" class="header-nav">
-      <a href="#" class="nav-link">Home</a>
-      <a href="#check" class="nav-link">Check</a>
+      <div class="status-pill" aria-live="polite"><span class="dot"></span> API ONLINE</div>
       <a href="#docs" class="nav-link">Docs</a>
       <a href="https://github.com/TSun-FreeFire" target="_blank" rel="noreferrer" class="nav-link">GitHub</a>
     </nav>
-    <div class="status-pill" aria-live="polite"><span class="dot"></span> API READY</div>
   </div>
 </header>
 
 <main class="container" id="top">
-  <section class="hero" aria-labelledby="hero-title">
-    <h1 id="hero-title">Check Free Fire account status instantly.</h1>
-    <p class="hero-sub">Free Fire Account Security Tool — enter a UID to inspect ban status, identity, and login history.</p>
-    <form class="lookup-form" onsubmit="event.preventDefault(); performCheck();" aria-label="UID lookup">
-      <div class="input-row">
-        <input type="text" id="uidInput" placeholder="Enter Player UID…" autocomplete="off" inputmode="numeric" aria-label="Player UID" aria-required="true">
-        <button type="submit" id="checkBtn">CHECK ACCOUNT</button>
+  <section class="frame hero-frame" aria-labelledby="hero-title">
+    <aside class="rail" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span>
+    </aside>
+
+    <div class="hero-main">
+      <div class="hero-topline">
+        <span class="chip">SECURITY LOOKUP</span>
+        <span class="chip mono">GET /bancheck?uid=...</span>
       </div>
-    </form>
-    <div class="loader" id="loader" aria-live="polite" aria-label="Loading" hidden><span class="spinner" aria-hidden="true"></span><span class="sr-only">Checking…</span></div>
-    <div class="error-message" id="errorMessage" role="alert" aria-live="assertive"></div>
+
+      <h1 id="hero-title">Check Free Fire account status instantly.</h1>
+      <p class="hero-sub">Enter a UID to verify account ban status and fetch profile data from the live endpoint.</p>
+
+      <form class="lookup-form" onsubmit="event.preventDefault(); performCheck();" aria-label="UID lookup">
+        <label for="uidInput" class="input-label">PLAYER UID</label>
+        <div class="input-row">
+          <input type="text" id="uidInput" placeholder="Enter Free Fire UID" autocomplete="off" inputmode="numeric" aria-required="true">
+          <button type="submit" id="checkBtn" class="btn btn-primary">CHECK</button>
+        </div>
+      </form>
+
+      <div class="loader" id="loader" aria-live="polite" aria-label="Loading" hidden>
+        <span class="spinner" aria-hidden="true"></span>
+        <span>Checking...</span>
+      </div>
+      <div class="error-message" id="errorMessage" role="alert" aria-live="assertive"></div>
+
+      <div class="status-row" aria-label="Live technical status">
+        <div class="status-row-item"><span>API</span><strong id="apiStatus">Operational</strong></div>
+        <div class="status-row-item"><span>Lookup</span><strong id="lookupSpeed">Fast Lookup</strong></div>
+        <div class="status-row-item"><span>Transport</span><strong>Secure Request</strong></div>
+      </div>
+    </div>
+
+    <aside class="hero-side">
+      <div class="side-card">
+        <span class="side-label">Account Result</span>
+        <div class="status-hero" id="statusHero">
+          <div class="status-icon" id="statusIcon" aria-hidden="true">?</div>
+          <div class="status-copy">
+            <div class="status-badge" id="statusBadge">UNKNOWN</div>
+            <p class="status-message" id="statusMessage">No result yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="side-card mini-grid">
+        <div class="mini-item"><span>Status</span><strong class="mono" id="statusText">Unknown</strong></div>
+        <div class="mini-item"><span>State</span><strong class="mono" id="responseState">Idle</strong></div>
+        <div class="mini-item"><span>Response</span><strong class="mono" id="responseInfo">N/A</strong></div>
+        <div class="mini-item"><span>Checked</span><strong class="mono" id="checkedAt">N/A</strong></div>
+      </div>
+    </aside>
   </section>
 
-  <section class="result-panel" id="check" aria-label="Account result" aria-live="polite">
+  <section class="frame result-frame" id="check" aria-label="Account result" aria-live="polite" hidden>
     <div class="result-header" id="resultContainer">
-      <h2>Account Status</h2>
-      <div class="status-badge" id="statusBadge">—</div>
+      <h2>Account Information</h2>
     </div>
     <div class="result-grid">
-      <div class="info-item"><span class="label">Nickname</span><span class="value mono" id="nickname">—</span></div>
-      <div class="info-item"><span class="label">UID</span><span class="value mono" id="uidValue">—</span></div>
-      <div class="info-item"><span class="label">Region</span><span class="value" id="region">—</span></div>
-      <div class="info-item"><span class="label">Level</span><span class="value" id="level">—</span></div>
-      <div class="info-item"><span class="label">Last Login</span><span class="value" id="lastLogin">—</span></div>
+      <div class="info-item"><span class="label">Nickname</span><span class="value" id="nickname">N/A</span></div>
+      <div class="info-item"><span class="label">UID</span><span class="value mono" id="uidValue">N/A</span></div>
+      <div class="info-item"><span class="label">Region</span><span class="value badge-value" id="region">N/A</span></div>
+      <div class="info-item"><span class="label">Account Level</span><span class="value level-value" id="level">N/A</span></div>
+      <div class="info-item"><span class="label">Last Login</span><span class="value" id="lastLogin">Not available</span></div>
     </div>
   </section>
 
-  <section class="tech-strip" aria-label="Technical metadata">
-    <div class="tech-item"><span class="label">API Status</span><span class="value" id="apiStatus">Operational</span></div>
-    <div class="tech-item"><span class="label">Checked</span><span class="value mono" id="checkedAt">—</span></div>
-    <div class="tech-item"><span class="label">Response</span><span class="value mono" id="responseInfo">—</span></div>
-  </section>
-
-  <section class="raw-json" aria-label="Raw API response">
+  <section class="frame raw-json" aria-label="Raw API response">
     <button type="button" class="accordion-btn" onclick="toggleRaw()" aria-expanded="false" aria-controls="rawPanel">Raw API Response</button>
     <div id="rawPanel" class="accordion-panel" hidden>
       <div class="code-block">
-        <div class="code-header"><span>json</span><button onclick="copyCode(this)">Copy JSON</button></div>
+        <div class="code-header"><span>json</span><button class="copy-btn" onclick="copyCode(this)">Copy JSON</button></div>
         <pre><code id="rawJson">{}</code></pre>
       </div>
     </div>
   </section>
 
-  <section id="docs" class="docs" aria-labelledby="docs-title">
+  <section id="docs" class="frame docs" aria-labelledby="docs-title">
     <h2 id="docs-title">API Documentation</h2>
     <div class="docs-grid">
-      <article class="doc-card"><h3>Endpoint</h3><div class="endpoint-box"><span class="method">GET</span><code>/bancheck?uid=111111111</code></div></article>
-      <article class="doc-card"><h3>Parameters</h3><div class="mini-table"><div><strong>uid</strong><span>Required</span></div><p>Numeric player UID.</p></div></article>
-      <article class="doc-card wide"><h3>Install</h3><div class="code-block"><div class="code-header"><span>bash</span><button onclick="copyCode(this)">Copy</button></div><pre><code>git clone https://github.com/TSun-FreeFire/TSun-FF-Bancheck.git
-cd TSun-FF-Bancheck
-pip install -r requirements.txt
-python app.py</code></pre></div></article>
-      <article class="doc-card"><h3>Sample Response</h3><div class="code-block"><div class="code-header"><span>json</span><button onclick="copyCode(this)">Copy</button></div><pre><code id="sampleResponse">{"nickname":"TSun x Kittens","uid":"111111111","AccountLevel":100,"region":"PK","status":"OK","is_banned":false,"credits":"TSun Studio","Last_Login":"0 Year 2 Months And 7 Days Ago"}</code></pre></div></article>
-      <article class="doc-card"><h3>Python Example</h3><div class="code-block"><div class="code-header"><span>python</span><button onclick="copyCode(this)">Copy</button></div><pre><code>import requests
+      <article class="doc-card wide">
+        <h3>Endpoint</h3>
+        <div class="endpoint-row">
+          <span class="method">GET</span>
+          <code id="endpointCode">/bancheck?uid=111111111</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </article>
+
+      <article class="doc-card">
+        <h3>Parameter</h3>
+        <div class="mini-table">
+          <div><strong>uid</strong><span>Required</span></div>
+          <p>Numeric Free Fire player UID.</p>
+        </div>
+      </article>
+
+      <article class="doc-card">
+        <h3>Sample Response</h3>
+        <div class="code-block">
+          <div class="code-header"><span>json</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code id="sampleResponse">{"nickname":"TSun x Kittens","uid":"111111111","AccountLevel":100,"region":"PK","status":"OK","is_banned":false,"credits":"TSun Studio","Last_Login":"0 Year 2 Months And 7 Days Ago"}</code></pre>
+        </div>
+      </article>
+
+      <article class="doc-card">
+        <h3>Python Example</h3>
+        <div class="code-block">
+          <div class="code-header"><span>python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>import requests
+
 uid = "111111111"
 response = requests.get(f"https://bancheck.tsunstudio.me/bancheck?uid={uid}")
-print(response.json())</code></pre></div></article>
-      <article class="doc-card wide"><h3>Try API</h3><div class="try-it-box"><div class="input-row"><input type="text" id="tryUid" placeholder="Try a UID…" autocomplete="off" inputmode="numeric"><button type="button" id="tryBtn" onclick="tryAPI()">Try</button></div><pre class="try-result" id="tryResult">JSON response will appear here.</pre></div></article>
+print(response.json())</code></pre>
+        </div>
+      </article>
+
+      <article class="doc-card">
+        <h3>JavaScript Example</h3>
+        <div class="code-block">
+          <div class="code-header"><span>javascript</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>const uid = "111111111";
+const response = await fetch(`/bancheck?uid=${uid}`);
+const data = await response.json();
+console.log(data);</code></pre>
+        </div>
+      </article>
+
+      <article class="doc-card wide">
+        <h3>Try API</h3>
+        <div class="try-it-box">
+          <div class="input-row">
+            <input type="text" id="tryUid" placeholder="Try a UID" autocomplete="off" inputmode="numeric" aria-label="Try UID">
+            <button type="button" id="tryBtn" class="btn btn-tech" onclick="tryAPI()">Try</button>
+          </div>
+          <pre class="try-result" id="tryResult">JSON response will appear here.</pre>
+        </div>
+      </article>
     </div>
   </section>
 </main>
 
 <footer class="site-footer">
-  <div class="footer-inner"><span>TSun BanCheck · TSun Studio</span><a href="https://github.com/TSun-FreeFire" target="_blank" rel="noreferrer">GitHub</a><span>2026</span></div>
+  <div class="footer-inner">
+    <span>TSun Studio</span>
+    <span>TSun FreeFire</span>
+    <a href="https://github.com/TSun-FreeFire" target="_blank" rel="noreferrer">GitHub</a>
+    <span>2026</span>
+  </div>
 </footer>
 
 <script src="/static/script.js"></script>
