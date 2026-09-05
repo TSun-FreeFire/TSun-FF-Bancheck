@@ -12,8 +12,6 @@
   const loader     = document.getElementById('loader');
   const errorMsg   = document.getElementById('errorMessage');
   const statusBadge = document.getElementById('statusBadge');
-  const resultPanel = document.getElementById('check');
-  const resultContainer = document.getElementById('resultContainer');
   const rawPanel   = document.getElementById('rawPanel');
   const rawJson    = document.getElementById('rawJson');
   const checkedAt  = document.getElementById('checkedAt');
@@ -25,9 +23,8 @@
   const statusHero = document.getElementById('statusHero');
   const statusIcon = document.getElementById('statusIcon');
   const statusMessage = document.getElementById('statusMessage');
-  const tryUidInput = document.getElementById('tryUid');
-  const tryBtnTry  = document.getElementById('tryBtn');
-  const tryResult  = document.getElementById('tryResult');
+  const nicknameEl = document.getElementById('nickname');
+  const regionEl = document.getElementById('region');
   const checkBtnDefaultLabel = checkBtn ? checkBtn.textContent : 'CHECK ACCOUNT';
 
   /* ── State ────────────────────────────────────────────── */
@@ -70,10 +67,10 @@
       data = await response.json();
 
       /* Update technical strip */
-      if (responseInfo) responseInfo.textContent = `${latencyMs}ms`;
+      if (responseInfo) responseInfo.textContent = data.AccountLevel != null ? String(data.AccountLevel) : 'N/A';
       if (lookupSpeed) lookupSpeed.textContent = latencyMs < 1200 ? 'Fast Lookup' : 'Lookup Active';
       if (apiStatus) apiStatus.textContent = response.ok ? 'Operational' : 'Error';
-      if (responseState) responseState.textContent = response.ok ? 'Success' : `HTTP ${response.status}`;
+      if (responseState) responseState.textContent = data.status || (data.is_banned === true ? 'BANNED' : data.is_banned === false ? 'OK' : (response.ok ? 'Unknown' : `HTTP ${response.status}`));
 
       /* 2xx → full success; 400 → bad uid; 503/500 → show available partial data + error note; anything else → error */
       if (response.ok) {
@@ -117,13 +114,13 @@
   function updateUI(data) {
     /* Text fields */
     setText('nickname',  data.nickname);
-    setText('uidValue',  data.uid);
     setText('region',    data.region);
-    setText('level',     data.AccountLevel != null ? String(data.AccountLevel) : null);
 
     /* Last login — prefer relative string, fall back to raw date */
     const lastLoginVal = data.Last_Login || data.AccountLastLogin || null;
-    setText('lastLogin', lastLoginVal);
+    if (checkedAt) checkedAt.textContent = lastLoginVal || 'Not available';
+    if (statusText) statusText.textContent = data.uid || 'N/A';
+    if (responseInfo) responseInfo.textContent = data.AccountLevel != null ? String(data.AccountLevel) : 'N/A';
 
     /* Ban status — the primary verdict */
     if (statusBadge) {
@@ -134,7 +131,7 @@
         statusBadge.textContent = 'ACCOUNT BANNED';
         statusBadge.classList.add('is-banned');
         if (statusHero) statusHero.classList.add('state-banned');
-        if (statusIcon) statusIcon.textContent = '!';
+        if (statusIcon) statusIcon.textContent = '⊘';
         if (statusMessage) statusMessage.textContent = 'This account appears to be banned.';
       } else if (data.is_banned === false) {
         statusBadge.textContent = 'ACCOUNT CLEAN';
@@ -148,7 +145,7 @@
           statusBadge.textContent = 'ACCOUNT BANNED';
           statusBadge.classList.add('is-banned');
           if (statusHero) statusHero.classList.add('state-banned');
-          if (statusIcon) statusIcon.textContent = '!';
+          if (statusIcon) statusIcon.textContent = '⊘';
           if (statusMessage) statusMessage.textContent = 'This account appears to be banned.';
         } else {
           statusBadge.textContent = 'UNKNOWN';
@@ -160,20 +157,19 @@
       }
     }
 
+    if (nicknameEl) {
+      nicknameEl.classList.remove('is-clean', 'is-banned', 'is-unknown');
+      if (data.is_banned === true || (data.status && data.status.toUpperCase() === 'BANNED')) {
+        nicknameEl.classList.add('is-banned');
+      } else if (data.is_banned === false) {
+        nicknameEl.classList.add('is-clean');
+      } else {
+        nicknameEl.classList.add('is-unknown');
+      }
+    }
+
     if (statusText) {
-      statusText.textContent = data.status || (data.is_banned === true ? 'BANNED' : data.is_banned === false ? 'OK' : 'Unknown');
-    }
-
-    /* Timestamp */
-    if (checkedAt) {
-      checkedAt.textContent = new Date().toLocaleTimeString();
-    }
-
-    /* Reveal result panel */
-    if (resultPanel) {
-      resultPanel.hidden = false;
-      resultPanel.classList.add('is-visible');
-      resultPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      statusText.textContent = data.uid || 'N/A';
     }
   }
 
@@ -186,10 +182,7 @@
   /* ── Helper: clear result on error / retry ─────────────── */
   function clearResult() {
     setText('nickname',   null);
-    setText('uidValue',   null);
     setText('region',     null);
-    setText('level',      null);
-    setText('lastLogin',  null);
     if (statusBadge) {
       statusBadge.textContent = 'UNKNOWN';
       statusBadge.className  = 'status-badge';
@@ -203,18 +196,18 @@
     if (statusMessage) {
       statusMessage.textContent = 'Ban status is not available for this lookup.';
     }
+    if (nicknameEl) {
+      nicknameEl.classList.remove('is-clean', 'is-banned', 'is-unknown');
+      nicknameEl.classList.add('is-unknown');
+    }
 
-    if (checkedAt)    checkedAt.textContent    = 'N/A';
+    if (checkedAt)    checkedAt.textContent    = 'Not available';
     if (responseInfo) responseInfo.textContent = 'N/A';
-    if (statusText)   statusText.textContent   = 'Unknown';
+    if (statusText)   statusText.textContent   = 'N/A';
     if (responseState) responseState.textContent = 'Idle';
     if (lookupSpeed) lookupSpeed.textContent = 'Fast Lookup';
     if (rawJson)     rawJson.textContent      = '{}';
     if (rawPanel)    rawPanel.hidden          = true;
-    if (resultPanel) {
-      resultPanel.classList.remove('is-visible');
-      resultPanel.hidden = true;
-    }
 
     const rawToggleBtn = document.querySelector('.accordion-btn[aria-controls="rawPanel"]');
     if (rawToggleBtn) rawToggleBtn.setAttribute('aria-expanded', 'false');
@@ -269,60 +262,6 @@
     if (!errorMsg) return;
     errorMsg.textContent = '';
     errorMsg.hidden = true;
-  }
-
-  /* ══════════════════════════════════════════════════════════
-     TRY API (docs section)
-     ══════════════════════════════════════════════════════════ */
-
-  async function tryAPI() {
-    const uid = tryUidInput ? tryUidInput.value.trim() : '';
-
-    if (!uid) {
-      if (tryResult) {
-        tryResult.textContent = 'Please enter a UID to try.';
-        tryResult.style.color = 'var(--danger)';
-      }
-      return;
-    }
-
-    if (!/^\d+$/.test(uid)) {
-      if (tryResult) {
-        tryResult.textContent = 'Invalid UID format. Enter numbers only.';
-        tryResult.style.color = 'var(--danger)';
-      }
-      return;
-    }
-
-    if (tryBtnTry) {
-      tryBtnTry.disabled = true;
-      tryBtnTry.textContent = 'Loading...';
-    }
-    if (tryResult) {
-      tryResult.textContent = 'Fetching...';
-      tryResult.style.color = 'var(--text-muted)';
-    }
-
-    try {
-      const response = await fetch(`/bancheck?uid=${encodeURIComponent(uid)}`);
-      const data = await response.json();
-
-      if (tryResult) {
-        tryResult.textContent = JSON.stringify(data, null, 2);
-        tryResult.style.color = response.ok ? 'var(--text-secondary)' : 'var(--danger)';
-      }
-    } catch (err) {
-      console.error('[TSun] Try API failed:', err);
-      if (tryResult) {
-        tryResult.textContent = `Error: ${err.message}`;
-        tryResult.style.color = 'var(--danger)';
-      }
-    } finally {
-      if (tryBtnTry) {
-        tryBtnTry.disabled = false;
-        tryBtnTry.textContent = 'Try';
-      }
-    }
   }
 
   /* ══════════════════════════════════════════════════════════
@@ -424,15 +363,6 @@
       });
     }
 
-    /* Enter key submits Try API */
-    if (tryUidInput) {
-      tryUidInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          tryAPI();
-        }
-      });
-    }
   }
 
   /* ══════════════════════════════════════════════════════════
@@ -452,7 +382,6 @@
 
   /* ── Expose for inline onclick handlers in HTML ───────── */
   window.performCheck = performCheck;
-  window.tryAPI      = tryAPI;
   window.toggleRaw   = toggleRaw;
   window.copyCode    = copyCode;
 

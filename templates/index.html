@@ -62,11 +62,12 @@
     </div>
 
     <aside class="hero-side">
-      <div class="side-card">
+      <div class="side-card" id="check">
         <span class="side-label">Account Result</span>
         <div class="status-hero" id="statusHero">
           <div class="status-icon" id="statusIcon" aria-hidden="true">?</div>
           <div class="status-copy">
+            <p class="account-line"><span class="region-pill" id="region">N/A</span><span class="account-name" id="nickname">N/A</span></p>
             <div class="status-badge" id="statusBadge">UNKNOWN</div>
             <p class="status-message" id="statusMessage">No result yet.</p>
           </div>
@@ -74,25 +75,12 @@
       </div>
 
       <div class="side-card mini-grid">
-        <div class="mini-item"><span>Status</span><strong class="mono" id="statusText">Unknown</strong></div>
-        <div class="mini-item"><span>State</span><strong class="mono" id="responseState">Idle</strong></div>
-        <div class="mini-item"><span>Response</span><strong class="mono" id="responseInfo">N/A</strong></div>
-        <div class="mini-item"><span>Checked</span><strong class="mono" id="checkedAt">N/A</strong></div>
+        <div class="mini-item"><span>Uid</span><strong class="mono" id="statusText">N/A</strong></div>
+        <div class="mini-item"><span>Status</span><strong class="mono" id="responseState">Unknown</strong></div>
+        <div class="mini-item"><span>Account Level</span><strong class="mono" id="responseInfo">N/A</strong></div>
+        <div class="mini-item"><span>Last Login</span><strong class="mono" id="checkedAt">Not available</strong></div>
       </div>
     </aside>
-  </section>
-
-  <section class="frame result-frame" id="check" aria-label="Account result" aria-live="polite" hidden>
-    <div class="result-header" id="resultContainer">
-      <h2>Account Information</h2>
-    </div>
-    <div class="result-grid">
-      <div class="info-item"><span class="label">Nickname</span><span class="value" id="nickname">N/A</span></div>
-      <div class="info-item"><span class="label">UID</span><span class="value mono" id="uidValue">N/A</span></div>
-      <div class="info-item"><span class="label">Region</span><span class="value badge-value" id="region">N/A</span></div>
-      <div class="info-item"><span class="label">Account Level</span><span class="value level-value" id="level">N/A</span></div>
-      <div class="info-item"><span class="label">Last Login</span><span class="value" id="lastLogin">Not available</span></div>
-    </div>
   </section>
 
   <section class="frame raw-json" aria-label="Raw API response">
@@ -156,24 +144,14 @@ console.log(data);</code></pre>
         </div>
       </article>
 
-      <article class="doc-card wide">
-        <h3>Try API</h3>
-        <div class="try-it-box">
-          <div class="input-row">
-            <input type="text" id="tryUid" placeholder="Try a UID" autocomplete="off" inputmode="numeric" aria-label="Try UID">
-            <button type="button" id="tryBtn" class="btn btn-tech" onclick="tryAPI()">Try</button>
-          </div>
-          <pre class="try-result" id="tryResult">JSON response will appear here.</pre>
-        </div>
-      </article>
     </div>
   </section>
 </main>
 
 <footer class="site-footer">
   <div class="footer-inner">
-    <span>TSun Studio</span>
-    <span>TSun FreeFire</span>
+    <a href="https://github.com/saeedx302" target="_blank" rel="noreferrer">TSun x Kittens</a>
+    <a href="https://github.com/TSun-FreeFire" target="_blank" rel="noreferrer">TSun FreeFire</a>
     <a href="https://github.com/TSun-FreeFire" target="_blank" rel="noreferrer">GitHub</a>
     <span>2026</span>
   </div>
